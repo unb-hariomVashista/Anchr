@@ -1,0 +1,53 @@
+/* Global Edge-to-Edge Full-Width Reset & Override for Shopify Embedded App */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --pc-page-max-width: 100% !important;
+  --s-page-max-width: 100% !important;
+  --p-page-max-width: 100% !important;
+  --p-space-800: 100% !important;
+}
+
+html,
+body,
+#root,
+#app,
+main,
+s-page,
+[class*="Polaris-Page"],
+[class*="Page"],
+[class*="Container"],
+[class*="Content"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Force shadow DOM parts & Polaris page wrappers to 100% width */
+s-page::part(container),
+s-page::part(page-content),
+s-page::part(page),
+s-page::part(body),
+s-page::part(main),
+.Polaris-Page,
+.Polaris-Page--fullWidth,
+.Polaris-Page-Content {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure app page containers expand full width */
+.mrp-homepage,
+.audit-page,
+.discounts-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 12px 24px 40px !important;
+  box-sizing: border-box !important;
+}

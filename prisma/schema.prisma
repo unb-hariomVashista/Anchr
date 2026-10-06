@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model Campaign {
+  id          String     @id @default(uuid())
+  shop        String
+  name        String
+  description String?
+  status      String     @default("DRAFT") // DRAFT | SCHEDULED | ACTIVE | PAUSED | ENDED | CANCELLED | NEEDS_ATTENTION
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  discounts   Discount[]
+
+  @@index([shop, status])
+  @@index([shop, startsAt])
+}
+
+model Discount {
+  id                String    @id @default(uuid())
+  shop              String
+  campaignId        String?
+  campaign          Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  title             String
+  method            String    @default("AUTOMATIC") // AUTOMATIC | CODE
+  code              String?
+  valueType         String    // PERCENTAGE | FIXED_AMOUNT
+  value             Float
+  targetType        String    @default("ALL") // ALL | PRODUCTS | COLLECTIONS
+  targetIds         String?   // JSON array of GIDs
+  floorType         String?   // AMOUNT | PERCENT_OF_MRP
+  floorValue        Float?
+  minQuantity       Int?
+  minSubtotal       Float?
+  combinesWith      String?   // JSON { product, order, shipping }
+  startsAt          DateTime?
+  endsAt            DateTime?
+  shopifyDiscountId String?
+  status            String    @default("DRAFT") // DRAFT | ACTIVE | PAUSED | ENDED | ERROR
+  lastSyncError     String?
+  createdBy         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([shop, status])
+  @@index([campaignId])
+  @@unique([shop, code])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  shop       String
+  timestamp  DateTime @default(now())
+  level      String   // DEBUG | INFO | WARN | ERROR
+  module     String   // Engine | AdminUI | ShopifyAPI | Webhook | Campaign | Scheduler | Reconcile
+  action     String
+  message    String
+  metadata   String?
+  actorId    String?  // staff user id, null for system
+  entityType String?  // DISCOUNT | CAMPAIGN | SYSTEM
+  entityId   String?
+  requestId  String?
+  before     String?  // JSON snapshot (audit-trail entries)
+  after      String?
+
+  @@index([shop, timestamp])
+  @@index([shop, entityType, entityId])
+  @@index([shop, level, timestamp])
+}

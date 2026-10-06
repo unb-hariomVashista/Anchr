@@ -1,0 +1,21 @@
+api_version = "2026-07"
+
+[[extensions]]
+name = "t:name"
+handle = "mrp-discount"
+type = "function"
+uid = "91747ab3-b99d-d309-0e88-66800eee1932c7045f1d"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
+
+  [extensions.input.variables]
+  namespace = "$app"
+  key = "mrp-config"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"
