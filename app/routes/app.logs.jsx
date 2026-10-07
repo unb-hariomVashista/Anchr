@@ -1,5 +1,6 @@
 import { Form, useLoaderData, useSearchParams, Link } from "react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useClickOutside } from "../components/useClickOutside";
 import {
   Search,
   SlidersHorizontal,
@@ -147,6 +148,12 @@ export default function Logs() {
   const [params] = useSearchParams();
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+
+  const filterRef = useRef(null);
+  const dateRef = useRef(null);
+
+  useClickOutside(filterRef, () => setFilterOpen(false), filterOpen);
+  useClickOutside(dateRef, () => setDateOpen(false), dateOpen);
 
   // 8 Mock Audit Log rows matching the design mockup for initial render / fallbacks
   const mockLogs = [
@@ -343,7 +350,7 @@ export default function Logs() {
           </div>
 
           {/* Working Date Selector Button using Lucide Icons */}
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative" }} ref={dateRef}>
             <button
               type="button"
               className="date-picker-btn"
@@ -414,111 +421,113 @@ export default function Logs() {
             />
           </div>
 
-          {/* Single Filters Button */}
-          <button
-            type="button"
-            className={`btn-audit-filters ${filterOpen ? "active" : ""}`}
-            onClick={() => setFilterOpen(!filterOpen)}
-          >
-            <SlidersHorizontal size={15} />
-            <span>Filters</span>
-            {activeFilterCount > 0 && (
-              <span style={{
-                backgroundColor: "#10b981",
-                color: "#fff",
-                fontSize: "11px",
-                fontWeight: 700,
-                padding: "2px 7px",
-                borderRadius: "999px"
-              }}>
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
+          {/* Single Filters Button & Popover */}
+          <div style={{ position: "relative" }} ref={filterRef}>
+            <button
+              type="button"
+              className={`btn-audit-filters ${filterOpen ? "active" : ""}`}
+              onClick={() => setFilterOpen(!filterOpen)}
+            >
+              <SlidersHorizontal size={15} />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span style={{
+                  backgroundColor: "#10b981",
+                  color: "#fff",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "2px 7px",
+                  borderRadius: "999px"
+                }}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
 
-          {/* Expandable Filter Popover Box (Kept mounted in DOM for form submission) */}
-          <div
-            className="audit-filter-popover"
-            style={{ display: filterOpen ? "flex" : "none" }}
-          >
-            <h3 className="audit-filter-title">
-              <span>Filter Audit Logs</span>
-              <button
-                type="button"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
-                onClick={() => setFilterOpen(false)}
-              >
-                <X size={16} />
-              </button>
-            </h3>
+            {/* Expandable Filter Popover Box (Kept mounted in DOM for form submission) */}
+            <div
+              className="audit-filter-popover"
+              style={{ display: filterOpen ? "flex" : "none" }}
+            >
+              <h3 className="audit-filter-title">
+                <span>Filter Audit Logs</span>
+                <button
+                  type="button"
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
+                  onClick={() => setFilterOpen(false)}
+                >
+                  <X size={16} />
+                </button>
+              </h3>
 
-            {/* Action Filter */}
-            <div className="audit-filter-group">
-              <label htmlFor="action-select">Action</label>
-              <select
-                id="action-select"
-                name="action"
-                defaultValue={filters.action}
-              >
-                {ACTIONS.map((act) => (
-                  <option key={act} value={act === "All Actions" ? "ALL" : act}>
-                    {act}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* User Filter */}
-            <div className="audit-filter-group">
-              <label htmlFor="user-select">User</label>
-              <select
-                id="user-select"
-                name="user"
-                defaultValue={filters.user}
-              >
-                {USERS.map((usr) => (
-                  <option key={usr} value={usr === "All Users" ? "ALL" : usr}>
-                    {usr}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div className="audit-filter-group">
-              <label htmlFor="status-select">Status</label>
-              <select
-                id="status-select"
-                name="status"
-                defaultValue={filters.status}
-              >
-                {STATUSES.map((st) => (
-                  <option key={st} value={st === "All Statuses" ? "ALL" : st}>
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Date Filters inside Popover */}
-            <div className="audit-date-row">
+              {/* Action Filter */}
               <div className="audit-filter-group">
-                <label htmlFor="pop-from">From</label>
-                <input id="pop-from" type="date" name="from" defaultValue={filters.from} />
+                <label htmlFor="action-select">Action</label>
+                <select
+                  id="action-select"
+                  name="action"
+                  defaultValue={filters.action}
+                >
+                  {ACTIONS.map((act) => (
+                    <option key={act} value={act === "All Actions" ? "ALL" : act}>
+                      {act}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="audit-filter-group">
-                <label htmlFor="pop-to">To</label>
-                <input id="pop-to" type="date" name="to" defaultValue={filters.to} />
-              </div>
-            </div>
 
-            <div className="audit-filter-actions">
-              <Link to="/app/logs" className="btn-audit-reset" onClick={() => setFilterOpen(false)}>
-                Clear All
-              </Link>
-              <button type="submit" className="btn-audit-apply" onClick={() => setFilterOpen(false)}>
-                Apply Filters
-              </button>
+              {/* User Filter */}
+              <div className="audit-filter-group">
+                <label htmlFor="user-select">User</label>
+                <select
+                  id="user-select"
+                  name="user"
+                  defaultValue={filters.user}
+                >
+                  {USERS.map((usr) => (
+                    <option key={usr} value={usr === "All Users" ? "ALL" : usr}>
+                      {usr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="audit-filter-group">
+                <label htmlFor="status-select">Status</label>
+                <select
+                  id="status-select"
+                  name="status"
+                  defaultValue={filters.status}
+                >
+                  {STATUSES.map((st) => (
+                    <option key={st} value={st === "All Statuses" ? "ALL" : st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date Filters inside Popover */}
+              <div className="audit-date-row">
+                <div className="audit-filter-group">
+                  <label htmlFor="pop-from">From</label>
+                  <input id="pop-from" type="date" name="from" defaultValue={filters.from} />
+                </div>
+                <div className="audit-filter-group">
+                  <label htmlFor="pop-to">To</label>
+                  <input id="pop-to" type="date" name="to" defaultValue={filters.to} />
+                </div>
+              </div>
+
+              <div className="audit-filter-actions">
+                <Link to="/app/logs" className="btn-audit-reset" onClick={() => setFilterOpen(false)}>
+                  Clear All
+                </Link>
+                <button type="submit" className="btn-audit-apply" onClick={() => setFilterOpen(false)}>
+                  Apply Filters
+                </button>
+              </div>
             </div>
           </div>
         </Form>

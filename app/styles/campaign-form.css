@@ -1,0 +1,575 @@
+/* Campaign Form & Detail Page Styling */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.campaign-form-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #111827;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 8px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Header */
+.campaign-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.campaign-form-title-group h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.campaign-form-title-group p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Main 2-Column Grid Layout */
+.campaign-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  width: 100%;
+  align-items: start;
+}
+
+.campaign-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.campaign-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+}
+
+/* Form Cards */
+.form-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+}
+
+.form-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.form-card-icon.green {
+  background-color: #e6f4ea;
+  color: #16a34a;
+}
+
+.form-card-icon.blue {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.form-card-icon.lightblue {
+  background-color: #f0f7ff;
+  color: #0284c7;
+}
+
+.form-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.form-card-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: -10px 0 0 0;
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group label .required-star {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  font-size: 13.5px;
+  color: #111827;
+  background-color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+}
+
+.char-counter {
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* Add Discount Button */
+.btn-add-discount {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-add-discount:hover {
+  background-color: #f0fdf4;
+  border-color: #059669;
+}
+
+/* Discounts Table */
+.campaign-discounts-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.campaign-discounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.campaign-discounts-table th {
+  background-color: #f9fafb;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.campaign-discounts-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.campaign-discounts-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.discount-name-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.discount-name-title {
+  font-weight: 700;
+  color: #111827;
+  font-size: 13.5px;
+}
+
+.discount-name-sub {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.btn-remove-icon {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-remove-icon:hover {
+  background-color: #fca5a5;
+  color: #991b1b;
+}
+
+/* Lifecycle Stepper Section (Matching 2nd Reference Screenshot) */
+.lifecycle-stepper-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.stepper-timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.stepper-timeline-line {
+  position: absolute;
+  top: 23px;
+  left: 36px;
+  right: 36px;
+  height: 3px;
+  background-color: #e5e7eb;
+  z-index: 1;
+}
+
+.stepper-timeline-progress {
+  position: absolute;
+  top: 23px;
+  left: 36px;
+  height: 3px;
+  background-color: #10b981;
+  z-index: 2;
+  transition: width 0.3s ease;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+  z-index: 3;
+  width: 25%;
+}
+
+.step-node {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background-color: #ffffff;
+  border: 3px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.stepper-step.completed .step-node,
+.stepper-step.active .step-node {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.step-desc {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.step-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Lifecycle Banner Box */
+.lifecycle-status-banner {
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.lifecycle-banner-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #e6f4ea;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lifecycle-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lifecycle-banner-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #14532d;
+}
+
+.lifecycle-banner-sub {
+  font-size: 12.5px;
+  color: #166534;
+}
+
+/* History Card */
+.history-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.btn-audit-trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #374151;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+}
+
+.btn-audit-trail:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+/* How Campaigns Work Sidebar Card */
+.how-campaigns-card {
+  background-color: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.how-campaigns-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.how-campaigns-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e40af;
+  margin: 0;
+}
+
+.how-campaigns-text {
+  font-size: 13px;
+  color: #1e3a8a;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Add Discount Modal / Selector Popover */
+.add-discount-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.add-discount-modal-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.add-discount-option-box {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #f9fafb;
+}
+
+/* Action Buttons Footer */
+.campaign-form-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 12px;
+  gap: 12px;
+}
+
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #374151;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.btn-submit-green {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  background-color: #064e3b;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(6, 78, 59, 0.2);
+}
+
+.btn-submit-green:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+  .campaign-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-sidebar {
+    position: static;
+  }
+}

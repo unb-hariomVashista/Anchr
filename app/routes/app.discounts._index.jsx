@@ -1,5 +1,6 @@
 import { Form, useFetcher, useLoaderData, useSearchParams, Link } from "react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useClickOutside } from "../components/useClickOutside";
 import {
   Tag,
   CheckCircle2,
@@ -21,6 +22,7 @@ import db from "../db.server";
 import { newContext, ShopifyUserError } from "../services/shopify-client.server";
 import { deleteDiscount, setDiscountPaused, pushDiscount } from "../services/discounts.server";
 import { AppShell } from "../components/ui";
+import { ConfirmModal } from "../components/ConfirmModal";
 import "../styles/discounts-page.css";
 
 const STATUS_OPTIONS = ["All Statuses", "Active", "Paused", "Expired", "Draft"];
@@ -118,77 +120,93 @@ export const action = async ({ request }) => {
 // Component for 3-dots dropdown menu using Lucide Icons (NO EMOJIS)
 function ThreeDotsMenu({ discount }) {
   const [open, setOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const menuRef = useRef(null);
   const fetcher = useFetcher();
   const busy = fetcher.state !== "idle";
+
+  useClickOutside(menuRef, () => setOpen(false), open);
 
   const handleAction = (intent) => {
     setOpen(false);
     fetcher.submit({ intent, id: discount.id }, { method: "post" });
   };
 
-  const handleDelete = () => {
-    setOpen(false);
-    if (confirm(`Are you sure you want to delete discount "${discount.title || discount.code}"?`)) {
-      fetcher.submit({ intent: "delete", id: discount.id }, { method: "post" });
-    }
-  };
-
   const status = discount.status;
 
   return (
-    <div className="action-dropdown-wrapper">
-      <button
-        type="button"
-        className="three-dots-btn"
-        onClick={() => setOpen(!open)}
-        title="Actions"
-      >
-        <MoreVertical size={18} />
-      </button>
+    <>
+      <div className="action-dropdown-wrapper" ref={menuRef}>
+        <button
+          type="button"
+          className="three-dots-btn"
+          onClick={() => setOpen(!open)}
+          title="Actions"
+        >
+          <MoreVertical size={18} />
+        </button>
 
-      {open && (
-        <div className="dropdown-menu">
-          <Link
-            to={`/app/discounts/${discount.id}`}
-            className="dropdown-item"
-            onClick={() => setOpen(false)}
-          >
-            <Pencil size={15} /> <span>Edit</span>
-          </Link>
+        {open && (
+          <div className="dropdown-menu">
+            <Link
+              to={`/app/discounts/${discount.id}`}
+              className="dropdown-item"
+              onClick={() => setOpen(false)}
+            >
+              <Pencil size={15} /> <span>Edit</span>
+            </Link>
 
-          {status === "ACTIVE" && (
+            {status === "ACTIVE" && (
+              <button
+                type="button"
+                className="dropdown-item"
+                disabled={busy}
+                onClick={() => handleAction("pause")}
+              >
+                <Pause size={15} /> <span>Pause</span>
+              </button>
+            )}
+
+            {status === "PAUSED" && (
+              <button
+                type="button"
+                className="dropdown-item"
+                disabled={busy}
+                onClick={() => handleAction("resume")}
+              >
+                <Play size={15} /> <span>Resume</span>
+              </button>
+            )}
+
             <button
               type="button"
-              className="dropdown-item"
+              className="dropdown-item delete"
               disabled={busy}
-              onClick={() => handleAction("pause")}
+              onClick={() => {
+                setOpen(false);
+                setShowDeleteModal(true);
+              }}
             >
-              <Pause size={15} /> <span>Pause</span>
+              <Trash2 size={15} /> <span>Delete</span>
             </button>
-          )}
+          </div>
+        )}
+      </div>
 
-          {status === "PAUSED" && (
-            <button
-              type="button"
-              className="dropdown-item"
-              disabled={busy}
-              onClick={() => handleAction("resume")}
-            >
-              <Play size={15} /> <span>Resume</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            className="dropdown-item delete"
-            disabled={busy}
-            onClick={handleDelete}
-          >
-            <Trash2 size={15} /> <span>Delete</span>
-          </button>
-        </div>
-      )}
-    </div>
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Discount?"
+        message={`Are you sure you want to delete discount "${discount.title || discount.code}"? This action cannot be undone.`}
+        confirmLabel="Delete Discount"
+        confirmVariant="critical"
+        loading={busy}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          fetcher.submit({ intent: "delete", id: discount.id }, { method: "post" });
+          setShowDeleteModal(false);
+        }}
+      />
+    </>
   );
 }
 
@@ -206,6 +224,9 @@ export default function Discounts() {
 
   const [params] = useSearchParams();
   const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
+
+  useClickOutside(filterRef, () => setFilterOpen(false), filterOpen);
 
   // Standard sample items matching user design screenshot for empty/demo DB states
   const mockDiscounts = [
@@ -484,114 +505,116 @@ export default function Discounts() {
             />
           </div>
 
-          {/* Single Filters Button */}
-          <button
-            type="button"
-            className={`btn-toggle-filters ${filterOpen ? "active" : ""}`}
-            onClick={() => setFilterOpen(!filterOpen)}
-          >
-            <SlidersHorizontal size={15} />
-            <span>Filters</span>
-            {activeFilterCount > 0 && (
-              <span className="filter-badge-count">{activeFilterCount}</span>
-            )}
-          </button>
+          {/* Single Filters Button & Popover */}
+          <div style={{ position: "relative" }} ref={filterRef}>
+            <button
+              type="button"
+              className={`btn-toggle-filters ${filterOpen ? "active" : ""}`}
+              onClick={() => setFilterOpen(!filterOpen)}
+            >
+              <SlidersHorizontal size={15} />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="filter-badge-count">{activeFilterCount}</span>
+              )}
+            </button>
 
-          {/* Expandable Filter Popover Box (Kept mounted in DOM for form submission) */}
-          <div
-            className="filter-popover-panel"
-            style={{ display: filterOpen ? "flex" : "none" }}
-          >
-            <h3 className="filter-panel-title">
-              <span>Filter Discounts</span>
-              <button
-                type="button"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
-                onClick={() => setFilterOpen(false)}
-              >
-                <X size={16} />
-              </button>
-            </h3>
+            {/* Expandable Filter Popover Box (Kept mounted in DOM for form submission) */}
+            <div
+              className="filter-popover-panel"
+              style={{ display: filterOpen ? "flex" : "none" }}
+            >
+              <h3 className="filter-panel-title">
+                <span>Filter Discounts</span>
+                <button
+                  type="button"
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
+                  onClick={() => setFilterOpen(false)}
+                >
+                  <X size={16} />
+                </button>
+              </h3>
 
-            {/* Status Filter */}
-            <div className="filter-group">
-              <label htmlFor="status-select">Status</label>
-              <select
-                id="status-select"
-                name="status"
-                defaultValue={filters.status}
-              >
-                {STATUS_OPTIONS.map((st) => (
-                  <option key={st} value={st === "All Statuses" ? "ALL" : st}>
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Status Filter */}
+              <div className="filter-group">
+                <label htmlFor="status-select">Status</label>
+                <select
+                  id="status-select"
+                  name="status"
+                  defaultValue={filters.status}
+                >
+                  {STATUS_OPTIONS.map((st) => (
+                    <option key={st} value={st === "All Statuses" ? "ALL" : st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Discount Amount Filter */}
-            <div className="filter-group">
-              <label htmlFor="amount-select">Discount Amount</label>
-              <select
-                id="amount-select"
-                name="amount"
-                defaultValue={filters.amount}
-              >
-                {AMOUNT_OPTIONS.map((amt) => (
-                  <option key={amt} value={amt === "All Amounts" ? "ALL" : amt}>
-                    {amt}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Discount Amount Filter */}
+              <div className="filter-group">
+                <label htmlFor="amount-select">Discount Amount</label>
+                <select
+                  id="amount-select"
+                  name="amount"
+                  defaultValue={filters.amount}
+                >
+                  {AMOUNT_OPTIONS.map((amt) => (
+                    <option key={amt} value={amt === "All Amounts" ? "ALL" : amt}>
+                      {amt}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Type Filter */}
-            <div className="filter-group">
-              <label htmlFor="type-select">Discount Type</label>
-              <select
-                id="type-select"
-                name="type"
-                defaultValue={filters.type}
-              >
-                {TYPE_OPTIONS.map((tp) => (
-                  <option key={tp} value={tp === "All Types" ? "ALL" : tp}>
-                    {tp}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Type Filter */}
+              <div className="filter-group">
+                <label htmlFor="type-select">Discount Type</label>
+                <select
+                  id="type-select"
+                  name="type"
+                  defaultValue={filters.type}
+                >
+                  {TYPE_OPTIONS.map((tp) => (
+                    <option key={tp} value={tp === "All Types" ? "ALL" : tp}>
+                      {tp}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Validity Filter */}
-            <div className="filter-group">
-              <label htmlFor="validity-select">Validity</label>
-              <select
-                id="validity-select"
-                name="validity"
-                defaultValue={filters.validity}
-              >
-                {VALIDITY_OPTIONS.map((val) => (
-                  <option key={val} value={val === "All Validity" ? "ALL" : val}>
-                    {val}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Validity Filter */}
+              <div className="filter-group">
+                <label htmlFor="validity-select">Validity</label>
+                <select
+                  id="validity-select"
+                  name="validity"
+                  defaultValue={filters.validity}
+                >
+                  {VALIDITY_OPTIONS.map((val) => (
+                    <option key={val} value={val === "All Validity" ? "ALL" : val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="filter-panel-actions">
-              <Link
-                to="/app/discounts"
-                className="btn-reset-panel"
-                onClick={() => setFilterOpen(false)}
-              >
-                Clear All
-              </Link>
-              <button
-                type="submit"
-                className="btn-apply-panel"
-                onClick={() => setFilterOpen(false)}
-              >
-                Apply Filters
-              </button>
+              <div className="filter-panel-actions">
+                <Link
+                  to="/app/discounts"
+                  className="btn-reset-panel"
+                  onClick={() => setFilterOpen(false)}
+                >
+                  Clear All
+                </Link>
+                <button
+                  type="submit"
+                  className="btn-apply-panel"
+                  onClick={() => setFilterOpen(false)}
+                >
+                  Apply Filters
+                </button>
+              </div>
             </div>
           </div>
         </Form>

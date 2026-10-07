@@ -22,6 +22,8 @@ export interface DiscountInput {
   floorValue?: number | null;
   minQuantity?: number | null;
   minSubtotal?: number | null;
+  usageLimit?: number | null;
+  oncePerCustomer?: boolean;
   combinesWith?: { product: boolean; order: boolean; shipping: boolean };
   startsAt?: Date | null;
   endsAt?: Date | null;
@@ -57,6 +59,8 @@ export function parseDiscountInput(
     floorValue: num("floorValue"),
     minQuantity: num("minQuantity"),
     minSubtotal: num("minSubtotal"),
+    usageLimit: method === "CODE" ? num("usageLimit") : null,
+    oncePerCustomer: method === "CODE" && str("oncePerCustomer") === "true",
     combinesWith: {
       product: str("combineProduct") === "true",
       order: str("combineOrder") === "true",
@@ -78,6 +82,9 @@ export function parseDiscountInput(
   }
   for (const [k, v] of [["Minimum quantity", data.minQuantity], ["Minimum subtotal", data.minSubtotal]] as const) {
     if (v != null && (!Number.isFinite(v) || v < 0)) errors.push(`${k} must be zero or more.`);
+  }
+  if (data.usageLimit != null && (!Number.isInteger(data.usageLimit) || data.usageLimit < 1)) {
+    errors.push("Usage limit must be a whole number of 1 or more.");
   }
   if (data.startsAt && isNaN(data.startsAt.getTime())) errors.push("Invalid start date.");
   if (data.endsAt && isNaN(data.endsAt.getTime())) errors.push("Invalid end date.");
@@ -155,7 +162,7 @@ const CREATE = {
 function shopifyInput(d: Discount, window: { startsAt?: Date | null; endsAt?: Date | null }) {
   return {
     title: d.title,
-    ...(isCode(d) ? { code: d.code } : {}),
+    ...(isCode(d) ? { code: d.code, usageLimit: d.usageLimit ?? null, appliesOncePerCustomer: d.oncePerCustomer } : {}),
     functionHandle: FUNCTION_HANDLE,
     discountClasses: ["PRODUCT"],
     startsAt: (window.startsAt ?? new Date()).toISOString(),
@@ -193,6 +200,8 @@ export async function createDiscount(ctx: ServiceContext, input: DiscountInput) 
       floorValue: input.floorValue ?? null,
       minQuantity: input.minQuantity ?? null,
       minSubtotal: input.minSubtotal ?? null,
+      usageLimit: input.method === "CODE" ? input.usageLimit ?? null : null,
+      oncePerCustomer: input.method === "CODE" && !!input.oncePerCustomer,
       combinesWith: JSON.stringify(input.combinesWith ?? DEFAULT_COMBINES),
       startsAt: input.startsAt ?? null,
       endsAt: input.endsAt ?? null,
@@ -378,6 +387,8 @@ export async function updateDiscount(ctx: ServiceContext, id: string, input: Dis
       floorValue: input.floorValue ?? null,
       minQuantity: input.minQuantity ?? null,
       minSubtotal: input.minSubtotal ?? null,
+      usageLimit: input.method === "CODE" ? input.usageLimit ?? null : null,
+      oncePerCustomer: input.method === "CODE" && !!input.oncePerCustomer,
       combinesWith: JSON.stringify(input.combinesWith ?? DEFAULT_COMBINES),
       startsAt: input.startsAt ?? null,
       endsAt: input.endsAt ?? null,

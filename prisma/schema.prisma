@@ -66,6 +66,8 @@ model Discount {
   floorValue        Float?
   minQuantity       Int?
   minSubtotal       Float?
+  usageLimit        Int?      // total redemptions allowed for a code; null = unlimited
+  oncePerCustomer   Boolean   @default(false)
   combinesWith      String?   // JSON { product, order, shipping }
   startsAt          DateTime?
   endsAt            DateTime?

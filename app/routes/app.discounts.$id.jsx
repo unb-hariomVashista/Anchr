@@ -4,7 +4,7 @@ import db from "../db.server";
 import { newContext, ShopifyUserError } from "../services/shopify-client.server";
 import { parseDiscountInput, updateDiscount } from "../services/discounts.server";
 import { DiscountForm } from "../components/DiscountForm";
-import { AppShell, PageHeader } from "../components/ui";
+import { AppShell } from "../components/ui";
 
 export const loader = async ({ request, params }) => {
   const { session } = await authenticate.admin(request);
@@ -44,7 +44,6 @@ export default function EditDiscount() {
 
   return (
     <AppShell>
-      <PageHeader title={`Edit ${discount.title}`} back={back} />
       <DiscountForm discount={discount} editing errors={actionData?.errors} cancelTo={back} />
     </AppShell>
   );

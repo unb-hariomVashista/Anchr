@@ -4,7 +4,7 @@ import { newContext, ShopifyUserError } from "../services/shopify-client.server"
 import { createDiscount, parseDiscountInput } from "../services/discounts.server";
 import { pushIfCampaignLive } from "../services/campaigns.server";
 import { DiscountForm } from "../components/DiscountForm";
-import { AppShell, PageHeader } from "../components/ui";
+import { AppShell } from "../components/ui";
 import db from "../db.server";
 
 export const loader = async ({ request }) => {
@@ -53,7 +53,6 @@ export default function NewDiscount() {
 
   return (
     <AppShell>
-      <PageHeader title="Create MRP discount" back={back} />
       <DiscountForm campaignId={campaignId} errors={actionData?.errors} cancelTo={back} />
     </AppShell>
   );

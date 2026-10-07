@@ -1,0 +1,452 @@
+/* Create / Edit Discount Form Styling */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.discount-form-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #111827;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 8px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Header */
+.discount-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.discount-form-title-group h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.discount-form-title-group p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.btn-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: #374151;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+}
+
+.btn-doc-link:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+/* Main 2-Column Layout */
+.discount-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  width: 100%;
+  align-items: start;
+}
+
+/* Form Card Container */
+.form-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+  margin-bottom: 20px;
+}
+
+.form-card:last-child {
+  margin-bottom: 0;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.form-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background-color: #e6f4ea;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.form-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.form-card-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: -10px 0 0 0;
+}
+
+/* Form Groups & Fields */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group label .required-star {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  font-size: 13.5px;
+  color: #111827;
+  background-color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+}
+
+/* Side by side rows */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Radio Option Buttons / Badges */
+.radio-group-inline {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-option input[type="radio"] {
+  accent-color: #059669;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Input with Suffix Unit */
+.input-unit-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-unit-wrapper input {
+  padding-right: 36px;
+}
+
+.input-unit-suffix {
+  position: absolute;
+  right: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+/* Date input with icon */
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.date-input-wrapper svg {
+  position: absolute;
+  left: 12px;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.date-input-wrapper input {
+  padding-left: 38px;
+}
+
+/* Checkboxes */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-option input[type="checkbox"] {
+  accent-color: #059669;
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Sidebar Column */
+.discount-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+}
+
+/* Price Preview Box inside sidebar */
+.preview-summary-box {
+  background-color: #f4f8f5;
+  border: 1px solid #e2ece5;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #4b5563;
+}
+
+.preview-row.bold {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  padding-top: 6px;
+}
+
+.preview-value-green {
+  color: #059669;
+  font-weight: 700;
+}
+
+.preview-divider {
+  height: 1px;
+  background-color: #d1e2d7;
+  margin: 2px 0;
+}
+
+/* Alert Box */
+.alert-card {
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.alert-card.warning {
+  background-color: #fff7ed;
+  border: 1px solid #ffedd5;
+  color: #9a3412;
+}
+
+.alert-card.success {
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  color: #166534;
+}
+
+.alert-card-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.alert-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alert-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.alert-card-text {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+/* How It Works Card */
+.how-it-works-card {
+  background-color: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.how-it-works-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.how-it-works-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #1e3a8a;
+  line-height: 1.45;
+}
+
+/* Action Buttons Footer */
+.form-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #374151;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.btn-submit-green {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  background-color: #064e3b;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(6, 78, 59, 0.2);
+}
+
+.btn-submit-green:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
+.btn-submit-green:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 1024px) {
+  .discount-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discount-sidebar {
+    position: static;
+  }
+}
