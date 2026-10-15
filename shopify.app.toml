@@ -3,7 +3,7 @@
 client_id = "456756eecc59a4da150a4ad5c9abbc0c"
 application_url = "https://example.com"
 embedded = true
-name = "mrp-discounter"
+name = "Anchr - MRP Discount Generator"
 
 [access_scopes]
 # read_products: variant compare_at_price (MRP); *_discounts: manage app discounts

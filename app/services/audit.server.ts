@@ -15,6 +15,7 @@ export interface LogFilters {
   q?: string;
   from?: string;
   to?: string;
+  ids?: string[];
 }
 
 export function filtersFromParams(params: URLSearchParams): LogFilters {
@@ -22,6 +23,7 @@ export function filtersFromParams(params: URLSearchParams): LogFilters {
     const v = params.get(k)?.trim();
     return v && v !== "ALL" ? v : undefined;
   };
+  const idsParam = params.get("ids")?.trim();
   return {
     level: get("level"),
     module: get("module"),
@@ -30,6 +32,7 @@ export function filtersFromParams(params: URLSearchParams): LogFilters {
     q: get("q"),
     from: get("from"),
     to: get("to"),
+    ids: idsParam ? idsParam.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
   };
 }
 
@@ -40,6 +43,7 @@ function where(shop: string, f: LogFilters): Prisma.AuditLogWhereInput {
 
   return {
     shop,
+    ...(f.ids && f.ids.length > 0 ? { id: { in: f.ids } } : {}),
     ...(f.level ? { level: f.level } : {}),
     ...(f.module ? { module: f.module } : {}),
     ...(f.entityType ? { entityType: f.entityType } : {}),

@@ -179,7 +179,7 @@ function shopifyInput(d: Discount, window: { startsAt?: Date | null; endsAt?: Da
   };
 }
 
-export async function createDiscount(ctx: ServiceContext, input: DiscountInput) {
+export async function createDiscount(ctx: ServiceContext, input: DiscountInput, opts: { push?: boolean } = {}) {
   if (input.method === "CODE") {
     const clash = await db.discount.findFirst({ where: { shop: ctx.shop, code: input.code! } });
     if (clash) throw new ShopifyUserError([{ message: `Code ${input.code} is already used by another discount.` }]);
@@ -221,7 +221,7 @@ export async function createDiscount(ctx: ServiceContext, input: DiscountInput) 
   });
 
   // Discounts that belong to a campaign go live when the campaign is activated.
-  if (created.campaignId) return created;
+  if (created.campaignId || opts.push === false) return created;
   return pushDiscount(ctx, created.id);
 }
 

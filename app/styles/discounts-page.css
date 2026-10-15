@@ -332,11 +332,13 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .discounts-table-container {
   width: 100%;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .discounts-table {
@@ -354,6 +356,14 @@
   padding: 14px 18px;
   background-color: #fafafa;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.discounts-table th:first-child {
+  border-top-left-radius: 15px;
+}
+
+.discounts-table th:last-child {
+  border-top-right-radius: 15px;
 }
 
 .discounts-table td {
@@ -582,8 +592,8 @@
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  z-index: 9999;
   min-width: 140px;
   padding: 6px;
   display: flex;

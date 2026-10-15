@@ -16,15 +16,16 @@ export const loader = async ({ request }) => {
     // ignore sync errors in loader fallback
   }
 
-  const [totalCouponsCount, activeDiscountsCount, dbDiscounts] = await Promise.all([
-    db.discount.count({ where: { shop } }),
-    db.discount.count({ where: { shop, status: "ACTIVE" } }),
-    db.discount.findMany({
-      where: { shop },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-  ]);
+  const [totalCouponsCount, activeDiscountsCount, dbDiscounts] =
+    await Promise.all([
+      db.discount.count({ where: { shop } }),
+      db.discount.count({ where: { shop, status: "ACTIVE" } }),
+      db.discount.findMany({
+        where: { shop },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
   return {
     totalCouponsCount,
@@ -34,7 +35,8 @@ export const loader = async ({ request }) => {
 };
 
 export default function Index() {
-  const { totalCouponsCount, activeDiscountsCount, dbDiscounts } = useLoaderData();
+  const { totalCouponsCount, activeDiscountsCount, dbDiscounts } =
+    useLoaderData();
 
   // Standard sample data from design mockup for fallback when DB is empty
   const defaultCoupons = [
@@ -84,36 +86,56 @@ export default function Index() {
     dbDiscounts && dbDiscounts.length > 0
       ? dbDiscounts.map((d) => ({
           code: d.code || d.title,
-          discount: d.valueType === "PERCENTAGE" ? `${d.value}% off MRP` : `₹${d.value} off MRP`,
-          appliesTo: d.targetType === "ALL" ? "All products" : d.targetType === "COLLECTIONS" ? "Collections" : "Products",
+          discount:
+            d.valueType === "PERCENTAGE"
+              ? `${d.value}% off MRP`
+              : `₹${d.value} off MRP`,
+          appliesTo:
+            d.targetType === "ALL"
+              ? "All products"
+              : d.targetType === "COLLECTIONS"
+                ? "Collections"
+                : "Products",
           used: 0,
           limit: 1000,
           status: d.status === "ACTIVE" ? "Active" : "Scheduled",
-          expiryDate: d.endsAt ? new Date(d.endsAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No expiry",
-          createdOn: new Date(d.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          expiryDate: d.endsAt
+            ? new Date(d.endsAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "No expiry",
+          createdOn: new Date(d.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
         }))
       : defaultCoupons;
 
   const totalCouponsDisplay = totalCouponsCount > 0 ? totalCouponsCount : 24;
-  const activeCouponsDisplay = activeDiscountsCount > 0 ? activeDiscountsCount : 18;
+  const activeCouponsDisplay =
+    activeDiscountsCount > 0 ? activeDiscountsCount : 18;
 
   return (
     <AppShell>
       <div className="mrp-homepage">
         {/* Top Banner Image */}
-        <Link to="/app/discounts/new" className="mrp-banner-img-container" title="Get Started with MRP Discounts">
-          <img
-            src="/homepage-top-bannner.png"
-            alt="Boost sales with MRP-based discounts banner"
-          />
-        </Link>
 
         {/* 4 Metric Cards */}
         <div className="metrics-grid">
           {/* Card 1 */}
           <div className="metric-card">
             <div className="metric-icon green">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
                 <line x1="7" y1="7" x2="7.01" y2="7" />
               </svg>
@@ -128,7 +150,14 @@ export default function Index() {
           {/* Card 2 */}
           <div className="metric-card">
             <div className="metric-icon blue">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                 <line x1="12" y1="22.08" x2="12" y2="12" />
@@ -144,7 +173,14 @@ export default function Index() {
           {/* Card 3 */}
           <div className="metric-card">
             <div className="metric-icon purple">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -154,14 +190,23 @@ export default function Index() {
             <div className="metric-info">
               <span className="metric-label">Total Redemptions</span>
               <span className="metric-value">1,248</span>
-              <span className="metric-change positive">↑ 12% from last month</span>
+              <span className="metric-change positive">
+                ↑ 12% from last month
+              </span>
             </div>
           </div>
 
           {/* Card 4 */}
           <div className="metric-card">
             <div className="metric-icon red">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="9" cy="21" r="1" />
                 <circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
@@ -170,7 +215,9 @@ export default function Index() {
             <div className="metric-info">
               <span className="metric-label">Total Sales (from coupons)</span>
               <span className="metric-value">₹2,48,900</span>
-              <span className="metric-change positive">↑ 18% from last month</span>
+              <span className="metric-change positive">
+                ↑ 18% from last month
+              </span>
             </div>
           </div>
         </div>
@@ -178,13 +225,24 @@ export default function Index() {
         {/* 2 Main Action Cards as Pure Images */}
         <div className="action-cards-grid">
           {/* Card 1: Create Discount Coupon */}
-          <Link to="/app/discounts/new" className="action-card-img-link" title="Create Discount Coupon">
+          <Link
+            to="/app/discounts/new"
+            className="action-card-img-link"
+            title="Create Discount Coupon"
+          >
             <img src="/create-discount.png" alt="Create Discount Coupon Card" />
           </Link>
 
           {/* Card 2: Create Discount Campaign */}
-          <Link to="/app/campaigns/new" className="action-card-img-link" title="Create Discount Campaign">
-            <img src="/create-campaign.png" alt="Create Discount Campaign Card" />
+          <Link
+            to="/app/campaigns/new"
+            className="action-card-img-link"
+            title="Create Discount Campaign"
+          >
+            <img
+              src="/create-campaign.png"
+              alt="Create Discount Campaign Card"
+            />
           </Link>
         </div>
 
@@ -216,7 +274,10 @@ export default function Index() {
               </thead>
               <tbody>
                 {displayedCoupons.map((coupon, idx) => {
-                  const percent = Math.min(100, Math.round((coupon.used / coupon.limit) * 100));
+                  const percent = Math.min(
+                    100,
+                    Math.round((coupon.used / coupon.limit) * 100),
+                  );
                   return (
                     <tr key={idx}>
                       <td className="coupon-code">{coupon.code}</td>
@@ -228,19 +289,28 @@ export default function Index() {
                             {coupon.used} / {coupon.limit}
                           </span>
                           <div className="progress-bar-bg">
-                            <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+                            <div
+                              className="progress-bar-fill"
+                              style={{ width: `${percent}%` }}
+                            />
                           </div>
                         </div>
                       </td>
                       <td>
-                        <span className={`status-badge ${coupon.status.toLowerCase()}`}>
+                        <span
+                          className={`status-badge ${coupon.status.toLowerCase()}`}
+                        >
                           {coupon.status}
                         </span>
                       </td>
                       <td>{coupon.expiryDate}</td>
                       <td>{coupon.createdOn}</td>
                       <td>
-                        <button type="button" className="action-dots-btn" title="Actions">
+                        <button
+                          type="button"
+                          className="action-dots-btn"
+                          title="Actions"
+                        >
                           &bull;&bull;&bull;
                         </button>
                       </td>

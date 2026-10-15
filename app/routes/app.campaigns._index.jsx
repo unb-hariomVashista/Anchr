@@ -4,8 +4,6 @@ import {
   Plus,
   Search,
   SlidersHorizontal,
-  Calendar,
-  ChevronDown,
   X,
   MoreVertical,
   Pencil,
@@ -13,6 +11,7 @@ import {
   Play,
   Copy,
   Trash2,
+  Download,
 } from "lucide-react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -22,12 +21,15 @@ import {
   pauseCampaign,
   resumeCampaign,
   deleteCampaign,
+  activateCampaign,
   syncCampaignStatuses,
 } from "../services/campaigns.server";
 import { AppShell } from "../components/ui";
 import { useClickOutside } from "../components/useClickOutside";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { ExportButton } from "../components/ExportButton";
 import "../styles/campaigns-page.css";
+import "../styles/bulk.css";
 
 const STATUS_OPTIONS = ["All Statuses", "Active", "Paused", "Scheduled", "Completed", "Draft"];
 
@@ -98,6 +100,8 @@ export const action = async ({ request }) => {
   try {
     if (intent === "duplicate") {
       await duplicateCampaign(ctx, id);
+    } else if (intent === "activate") {
+      await activateCampaign(ctx, id);
     } else if (intent === "pause") {
       await pauseCampaign(ctx, id);
     } else if (intent === "resume") {
@@ -149,6 +153,17 @@ function ThreeDotsMenu({ campaign }) {
             >
               <Pencil size={15} /> <span>Edit</span>
             </Link>
+
+            {(status === "DRAFT" || status === "PAUSED" || status === "SCHEDULED") && (
+              <button
+                type="button"
+                className="dropdown-item"
+                disabled={busy}
+                onClick={() => handleAction("activate")}
+              >
+                <Play size={15} /> <span>Activate</span>
+              </button>
+            )}
 
             {status === "ACTIVE" && (
               <button
@@ -227,14 +242,12 @@ export default function Campaigns() {
 
   const [params] = useSearchParams();
   const [filterOpen, setFilterOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const filterRef = useRef(null);
-  const dateRef = useRef(null);
 
   // Automatically close filter popovers when clicking outside or clicking any interactive element outside
   useClickOutside(filterRef, () => setFilterOpen(false), filterOpen);
-  useClickOutside(dateRef, () => setDateOpen(false), dateOpen);
 
   // Standard sample items matching user design screenshot for empty/demo DB states
   const mockCampaigns = [
@@ -361,14 +374,15 @@ export default function Campaigns() {
   }
 
   const displayItems = rawItems;
+  const effectiveTotalCount = isDbPopulated ? totalCount : rawItems.length;
   const totalDisplayCount = isDbPopulated ? totalCount : 24;
   const activeDisplayCount = isDbPopulated ? activeCount : 16;
   const pausedDisplayCount = isDbPopulated ? pausedCount : 5;
   const completedDisplayCount = isDbPopulated ? completedCount : 3;
 
-  const totalPages = Math.ceil(displayItems.length / pageSize) || 1;
-  const startItem = displayItems.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-  const endItem = Math.min(currentPage * pageSize, displayItems.length);
+  const totalPages = Math.ceil(effectiveTotalCount / pageSize) || 1;
+  const startItem = effectiveTotalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endItem = Math.min(currentPage * pageSize, effectiveTotalCount);
 
   // Count active filter criteria
   let activeFilterCount = 0;
@@ -381,9 +395,12 @@ export default function Campaigns() {
     return `/app/campaigns?${p.toString()}`;
   };
 
-  const dateLabel = filters.from && filters.to
-    ? `${filters.from} – ${filters.to}`
-    : "Oct 1, 2026 – Oct 31, 2026";
+  const getPaginationRange = (current, total) => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
+    if (current >= total - 3) return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+    return [1, "...", current - 1, current, current + 1, "...", total];
+  };
 
   const renderStatusBadge = (status) => {
     const st = (status || "").toLowerCase();
@@ -410,6 +427,29 @@ export default function Campaigns() {
     return <span className={`status-badge-pill ${badgeClass}`}>{label}</span>;
   };
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === displayItems.length && displayItems.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(displayItems.map((item) => item.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const exportParams = new URLSearchParams(params);
+  if (selectedIds.length > 0) {
+    exportParams.set("ids", selectedIds.join(","));
+  }
+  const exportUrl = `/api/campaigns/export?${exportParams.toString()}`;
+  const exportFilename = selectedIds.length > 0
+    ? `campaigns-selected-${selectedIds.length}.csv`
+    : `campaigns-${new Date().toISOString().slice(0, 10)}.csv`;
+
   return (
     <AppShell>
       <div className="campaigns-page">
@@ -421,9 +461,14 @@ export default function Campaigns() {
               Create and manage MRP-based discount campaigns to run multiple coupons together for specific products, collections or time periods.
             </p>
           </div>
-          <Link to="/app/campaigns/new" className="btn-create-campaign">
-            <Plus size={16} /> <span>Create Campaign</span>
-          </Link>
+          <div className="header-actions">
+            <ExportButton url={exportUrl} filename={exportFilename}>
+              {selectedIds.length > 0 ? `Export Selected (${selectedIds.length})` : "Export CSV"}
+            </ExportButton>
+            <Link to="/app/campaigns/new" className="btn-create-campaign">
+              <Plus size={16} /> <span>Create Campaign</span>
+            </Link>
+          </div>
         </div>
 
         {/* 4 Summary Stat Cards */}
@@ -476,61 +521,6 @@ export default function Campaigns() {
           </div>
 
           <div className="campaigns-controls-right">
-            {/* Date Range Selector Button & Popover */}
-            <div style={{ position: "relative" }} ref={dateRef}>
-              <button
-                type="button"
-                className="date-picker-btn"
-                onClick={() => setDateOpen(!dateOpen)}
-              >
-                <Calendar size={15} />
-                <span>{dateLabel}</span>
-                <ChevronDown size={14} />
-              </button>
-
-              <div
-                className="filter-popover-panel"
-                style={{ width: "300px", display: dateOpen ? "flex" : "none" }}
-              >
-                <h3 className="filter-panel-title">
-                  <span>Select Date Range</span>
-                  <button
-                    type="button"
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
-                    onClick={() => setDateOpen(false)}
-                  >
-                    <X size={16} />
-                  </button>
-                </h3>
-                <div className="filter-group">
-                  <label htmlFor="from-date">From Date</label>
-                  <input
-                    id="from-date"
-                    type="date"
-                    name="from"
-                    defaultValue={filters.from || "2026-10-01"}
-                  />
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="to-date">To Date</label>
-                  <input
-                    id="to-date"
-                    type="date"
-                    name="to"
-                    defaultValue={filters.to || "2026-10-31"}
-                  />
-                </div>
-                <div className="filter-panel-actions">
-                  <Link to="/app/campaigns" className="btn-reset-panel" onClick={() => setDateOpen(false)}>
-                    Clear
-                  </Link>
-                  <button type="submit" className="btn-apply-panel" onClick={() => setDateOpen(false)}>
-                    Apply Date
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {/* Single Filters Button & Popover */}
             <div style={{ position: "relative" }} ref={filterRef}>
               <button
@@ -577,6 +567,26 @@ export default function Campaigns() {
                   </select>
                 </div>
 
+                {/* Date Range Filters inside Popover */}
+                <div className="filter-group">
+                  <label htmlFor="from-date">From Date</label>
+                  <input
+                    id="from-date"
+                    type="date"
+                    name="from"
+                    defaultValue={filters.from}
+                  />
+                </div>
+                <div className="filter-group">
+                  <label htmlFor="to-date">To Date</label>
+                  <input
+                    id="to-date"
+                    type="date"
+                    name="to"
+                    defaultValue={filters.to}
+                  />
+                </div>
+
                 <div className="filter-panel-actions">
                   <Link
                     to="/app/campaigns"
@@ -604,9 +614,16 @@ export default function Campaigns() {
             <table className="campaigns-table">
               <thead>
                 <tr>
-                  <th style={{ width: "28%" }}>Campaign Name</th>
+                  <th style={{ width: "40px" }} className="checkbox-col">
+                    <input
+                      type="checkbox"
+                      checked={displayItems.length > 0 && selectedIds.length === displayItems.length}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
+                  <th style={{ width: "26%" }}>Campaign Name</th>
                   <th style={{ width: "20%" }}>Coupons</th>
-                  <th style={{ width: "22%" }}>Applies To</th>
+                  <th style={{ width: "20%" }}>Applies To</th>
                   <th style={{ width: "18%" }}>Schedule</th>
                   <th style={{ width: "8%" }}>Status</th>
                   <th style={{ width: "4%", textAlign: "right" }}>Actions</th>
@@ -614,7 +631,14 @@ export default function Campaigns() {
               </thead>
               <tbody>
                 {displayItems.map((item) => (
-                  <tr key={item.id}>
+                  <tr key={item.id} className={selectedIds.includes(item.id) ? "row-selected" : ""}>
+                    <td className="checkbox-col">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item.id)}
+                        onChange={() => toggleSelect(item.id)}
+                      />
+                    </td>
                     <td>
                       <div className="campaign-name-cell">
                         <Link to={`/app/campaigns/${item.id}`}>{item.name}</Link>
@@ -649,7 +673,7 @@ export default function Campaigns() {
           {/* Footer & Pagination */}
           <div className="campaigns-footer">
             <span className="footer-info-text">
-              Showing {startItem}-{endItem} of {totalDisplayCount} campaigns
+              Showing {startItem}-{endItem} of {effectiveTotalCount} campaigns
             </span>
             <div className="pagination-controls">
               <Link
@@ -659,15 +683,21 @@ export default function Campaigns() {
               >
                 ‹
               </Link>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                <Link
-                  key={pg}
-                  to={buildPageUrl(pg)}
-                  className={`page-num-btn ${currentPage === pg ? "active" : ""}`}
-                >
-                  {pg}
-                </Link>
-              ))}
+              {getPaginationRange(currentPage, totalPages).map((pg, idx) =>
+                pg === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="page-num-btn disabled">
+                    ...
+                  </span>
+                ) : (
+                  <Link
+                    key={pg}
+                    to={buildPageUrl(pg)}
+                    className={`page-num-btn ${currentPage === pg ? "active" : ""}`}
+                  >
+                    {pg}
+                  </Link>
+                )
+              )}
               <Link
                 to={buildPageUrl(Math.min(totalPages, currentPage + 1))}
                 className={`page-num-btn ${currentPage === totalPages ? "disabled" : ""}`}

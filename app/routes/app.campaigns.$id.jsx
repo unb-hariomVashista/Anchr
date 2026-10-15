@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Form, Link, redirect, useActionData, useLoaderData, useNavigation, useSubmit } from "react-router";
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useSubmit,
+} from "react-router";
 import {
   FileText,
   Tag,
@@ -114,7 +122,9 @@ export const action = async ({ request, params }) => {
       default:
         return { errors: ["Unknown action."] };
     }
-    return { errors: result?.failures?.map((f) => `${f.title}: ${f.error}`) || [] };
+    return {
+      errors: result?.failures?.map((f) => `${f.title}: ${f.error}`) || [],
+    };
   } catch (err) {
     return { errors: [err.message] };
   }
@@ -137,14 +147,14 @@ export default function CampaignDetail() {
 
   // Filter unassigned discounts for selection in modal
   const unassignedDiscounts = (availableDiscounts || []).filter(
-    (d) => d.campaignId !== c.id
+    (d) => d.campaignId !== c.id,
   );
 
   const handleAttachDiscount = () => {
     if (!selectedDiscountId) return;
     submit(
       { intent: "attachDiscount", discountId: selectedDiscountId },
-      { method: "post" }
+      { method: "post" },
     );
     setShowAddModal(false);
     setSelectedDiscountId("");
@@ -192,18 +202,29 @@ export default function CampaignDetail() {
           <div className="campaign-form-title-group">
             <h1>{c.name}</h1>
             <p>
-              Add multiple discount coupons and run them together for a specific time period. You can target specific products or collections for each coupon.
+              Add multiple discount coupons and run them together for a specific
+              time period. You can target specific products or collections for
+              each coupon.
             </p>
           </div>
         </div>
 
         {/* Backend Action Errors */}
         {actionData?.errors && actionData.errors.length > 0 && (
-          <div className="alert-card warning" style={{ backgroundColor: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" }}>
+          <div
+            className="alert-card warning"
+            style={{
+              backgroundColor: "#fee2e2",
+              borderColor: "#fca5a5",
+              color: "#991b1b",
+            }}
+          >
             <div className="alert-card-info">
               <span className="alert-card-title">Some actions failed</span>
               {actionData.errors.map((err, i) => (
-                <span key={i} className="alert-card-text">• {err}</span>
+                <span key={i} className="alert-card-text">
+                  • {err}
+                </span>
               ))}
             </div>
           </div>
@@ -261,7 +282,6 @@ export default function CampaignDetail() {
                       Start date (UTC) <span className="required-star">*</span>
                     </label>
                     <div className="date-input-wrapper">
-                      <Calendar size={15} />
                       <input
                         id="start-date"
                         type="date"
@@ -276,7 +296,6 @@ export default function CampaignDetail() {
                   <div className="form-group">
                     <label htmlFor="end-date">End date (optional)</label>
                     <div className="date-input-wrapper">
-                      <Calendar size={15} />
                       <input
                         id="end-date"
                         type="date"
@@ -288,7 +307,9 @@ export default function CampaignDetail() {
                     </div>
                   </div>
                 </div>
-                <p className="form-hint">These dates apply to every discount in the campaign.</p>
+                <p className="form-hint">
+                  These dates apply to every discount in the campaign.
+                </p>
               </div>
 
               {/* Card 2: Discounts (X) */}
@@ -298,7 +319,9 @@ export default function CampaignDetail() {
                     <div className="form-card-icon green">
                       <Tag size={16} />
                     </div>
-                    <h2 className="form-card-title">Discounts ({c.discounts.length})</h2>
+                    <h2 className="form-card-title">
+                      Discounts ({c.discounts.length})
+                    </h2>
                   </div>
 
                   {editable && (
@@ -312,12 +335,21 @@ export default function CampaignDetail() {
                   )}
                 </div>
                 <p className="form-card-subtitle">
-                  Add at least one discount to this campaign. These discounts will be activated together based on the campaign dates.
+                  Add at least one discount to this campaign. These discounts
+                  will be activated together based on the campaign dates.
                 </p>
 
                 {c.discounts.length === 0 ? (
-                  <div style={{ padding: "20px 0", textAlign: "center", color: "#6b7280", fontSize: "13.5px" }}>
-                    No discounts attached yet. Click "+ Add discount" above to add discounts.
+                  <div
+                    style={{
+                      padding: "20px 0",
+                      textAlign: "center",
+                      color: "#6b7280",
+                      fontSize: "13.5px",
+                    }}
+                  >
+                    No discounts attached yet. Click "+ Add discount" above to
+                    add discounts.
                   </div>
                 ) : (
                   <div className="campaign-discounts-table-wrapper">
@@ -332,7 +364,11 @@ export default function CampaignDetail() {
                           <th style={{ width: "16%" }}>Applies to</th>
                           <th style={{ width: "8%" }}>Min qty</th>
                           <th style={{ width: "8%" }}>Min subtotal</th>
-                          {editable && <th style={{ width: "4%", textAlign: "center" }}>Actions</th>}
+                          {editable && (
+                            <th style={{ width: "4%", textAlign: "center" }}>
+                              Actions
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -341,25 +377,35 @@ export default function CampaignDetail() {
                             <td>{index + 1}</td>
                             <td>
                               <div className="discount-name-badge">
-                                <span className="discount-name-title">{d.code || d.title}</span>
-                                <span className="discount-name-sub">{d.title}</span>
+                                <span className="discount-name-title">
+                                  {d.code || d.title}
+                                </span>
+                                <span className="discount-name-sub">
+                                  {d.title}
+                                </span>
                               </div>
                             </td>
-                            <td>{d.method === "CODE" ? "Code" : "Automatic"}</td>
-                            <td>{d.valueType === "PERCENTAGE" ? `${d.value}%` : `₹${d.value}`}</td>
+                            <td>
+                              {d.method === "CODE" ? "Code" : "Automatic"}
+                            </td>
+                            <td>
+                              {d.valueType === "PERCENTAGE"
+                                ? `${d.value}%`
+                                : `₹${d.value}`}
+                            </td>
                             <td>
                               {d.floorType === "AMOUNT"
                                 ? `Min ₹${d.floorValue}`
                                 : d.floorType === "PERCENT_OF_MRP"
-                                ? `Min ${d.floorValue}%`
-                                : "No floor"}
+                                  ? `Min ${d.floorValue}%`
+                                  : "No floor"}
                             </td>
                             <td>
                               {d.targetType === "ALL"
                                 ? "All products"
                                 : d.targetType === "COLLECTIONS"
-                                ? "Collections"
-                                : "Specific products"}
+                                  ? "Collections"
+                                  : "Specific products"}
                             </td>
                             <td>{d.minQuantity ?? 1}</td>
                             <td>₹{d.minSubtotal ?? 0}</td>
@@ -369,7 +415,12 @@ export default function CampaignDetail() {
                                   type="button"
                                   className="btn-remove-icon"
                                   title="Remove discount from campaign"
-                                  onClick={() => setDeleteTarget({ id: d.id, title: d.title || d.code })}
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      id: d.id,
+                                      title: d.title || d.code,
+                                    })
+                                  }
                                 >
                                   <Trash2 size={15} />
                                 </button>
@@ -399,36 +450,52 @@ export default function CampaignDetail() {
                     <div
                       className="stepper-timeline-progress"
                       style={{
-                        width: isEnded ? "100%" : isActive ? "66%" : isScheduled ? "33%" : "0%",
+                        width: isEnded
+                          ? "100%"
+                          : isActive
+                            ? "66%"
+                            : isScheduled
+                              ? "33%"
+                              : "0%",
                       }}
                     />
 
                     {/* Step 1: Draft */}
-                    <div className={`stepper-step ${draftCompleted ? "completed" : ""}`}>
+                    <div
+                      className={`stepper-step ${draftCompleted ? "completed" : ""}`}
+                    >
                       <div className="step-node">
                         <Check size={14} />
                       </div>
                       <div className="step-info">
                         <span className="step-title">Draft</span>
                         <span className="step-desc">Created</span>
-                        <span className="step-date">{formattedCreatedDate}</span>
+                        <span className="step-date">
+                          {formattedCreatedDate}
+                        </span>
                       </div>
                     </div>
 
                     {/* Step 2: Scheduled */}
-                    <div className={`stepper-step ${scheduledCompleted ? "completed" : isDraft ? "" : "active"}`}>
+                    <div
+                      className={`stepper-step ${scheduledCompleted ? "completed" : isDraft ? "" : "active"}`}
+                    >
                       <div className="step-node">
                         {scheduledCompleted ? <Check size={14} /> : null}
                       </div>
                       <div className="step-info">
                         <span className="step-title">Scheduled</span>
-                        <span className="step-desc">Waiting for start date</span>
+                        <span className="step-desc">
+                          Waiting for start date
+                        </span>
                         <span className="step-date">{formattedStartDate}</span>
                       </div>
                     </div>
 
                     {/* Step 3: Active */}
-                    <div className={`stepper-step ${activeCompleted ? "completed" : isActive ? "active" : ""}`}>
+                    <div
+                      className={`stepper-step ${activeCompleted ? "completed" : isActive ? "active" : ""}`}
+                    >
                       <div className="step-node">
                         {activeCompleted ? <Check size={14} /> : null}
                       </div>
@@ -439,7 +506,9 @@ export default function CampaignDetail() {
                     </div>
 
                     {/* Step 4: Ended */}
-                    <div className={`stepper-step ${endedCompleted ? "completed" : ""}`}>
+                    <div
+                      className={`stepper-step ${endedCompleted ? "completed" : ""}`}
+                    >
                       <div className="step-node">
                         {endedCompleted ? <Check size={14} /> : null}
                       </div>
@@ -460,20 +529,38 @@ export default function CampaignDetail() {
                         {isActive
                           ? "This campaign is currently active."
                           : isScheduled
-                          ? `This campaign is scheduled to start on ${formattedStartDate} (UTC).`
-                          : isEnded
-                          ? "This campaign has ended."
-                          : "This campaign is in draft mode."}
+                            ? `This campaign is scheduled to start on ${formattedStartDate} (UTC).`
+                            : isEnded
+                              ? "This campaign has ended."
+                              : "This campaign is in draft mode."}
                       </span>
                       <span className="lifecycle-banner-sub">
                         {isActive
                           ? "All discounts in this campaign are live in Shopify."
                           : isScheduled
-                          ? "All discounts will be activated automatically at the start date."
-                          : isEnded
-                          ? "Campaign dates have passed or the campaign was ended."
-                          : "Nothing is live in Shopify yet. Activate the campaign when ready."}
+                            ? "All discounts will be activated automatically at the start date."
+                            : isEnded
+                              ? "Campaign dates have passed or the campaign was ended."
+                              : "Nothing is live in Shopify yet. Activate the campaign when ready."}
                       </span>
+                      {isDraft && (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            submit({ intent: "activate" }, { method: "post" })
+                          }
+                          className="btn-submit-green"
+                          style={{
+                            marginTop: "10px",
+                            padding: "6px 14px",
+                            fontSize: "12.5px",
+                            alignSelf: "flex-start",
+                          }}
+                        >
+                          Activate Campaign Now
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -488,7 +575,10 @@ export default function CampaignDetail() {
                     </div>
                     <div>
                       <h2 className="form-card-title">History</h2>
-                      <p className="form-card-subtitle" style={{ margin: "2px 0 0 0" }}>
+                      <p
+                        className="form-card-subtitle"
+                        style={{ margin: "2px 0 0 0" }}
+                      >
                         View all changes and actions related to this campaign.
                       </p>
                     </div>
@@ -512,7 +602,9 @@ export default function CampaignDetail() {
                   <h3 className="how-campaigns-title">How campaigns work</h3>
                 </div>
                 <p className="how-campaigns-text">
-                  A campaign lets you group multiple discount coupons and run them together for a specific time period. You can target specific products, collections or run a site-wide campaign.
+                  A campaign lets you group multiple discount coupons and run
+                  them together for a specific time period. You can target
+                  specific products, collections or run a site-wide campaign.
                 </p>
               </div>
 
@@ -521,8 +613,25 @@ export default function CampaignDetail() {
                 <Link to="/app/campaigns" className="btn-cancel">
                   Cancel
                 </Link>
+                {isDraft && (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      submit({ intent: "activate" }, { method: "post" })
+                    }
+                    className="btn-submit-green"
+                    style={{ backgroundColor: "#059669" }}
+                  >
+                    Activate Campaign
+                  </button>
+                )}
                 {editable && (
-                  <button type="submit" disabled={busy} className="btn-submit-green">
+                  <button
+                    type="submit"
+                    disabled={busy}
+                    className="btn-submit-green"
+                  >
                     Save campaign
                   </button>
                 )}
@@ -533,13 +642,32 @@ export default function CampaignDetail() {
 
         {/* Add Discount Modal (Select from existing OR create new) */}
         {showAddModal && (
-          <div className="add-discount-modal-overlay" onClick={() => setShowAddModal(false)}>
-            <div className="add-discount-modal-card" onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700 }}>Add Discount to Campaign</h3>
+          <div
+            className="add-discount-modal-overlay"
+            onClick={() => setShowAddModal(false)}
+          >
+            <div
+              className="add-discount-modal-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700 }}>
+                  Add Discount to Campaign
+                </h3>
                 <button
                   type="button"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#6b7280",
+                  }}
                   onClick={() => setShowAddModal(false)}
                 >
                   <X size={18} />
@@ -548,11 +676,19 @@ export default function CampaignDetail() {
 
               {/* Option 1: Select from existing discounts */}
               <div className="add-discount-option-box">
-                <label style={{ fontSize: "13.5px", fontWeight: 700, color: "#111827" }}>
+                <label
+                  style={{
+                    fontSize: "13.5px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
                   Option 1: Select from existing discounts
                 </label>
                 {unassignedDiscounts.length === 0 ? (
-                  <p style={{ fontSize: "12.5px", color: "#6b7280", margin: 0 }}>
+                  <p
+                    style={{ fontSize: "12.5px", color: "#6b7280", margin: 0 }}
+                  >
                     No unassigned discounts available in your store.
                   </p>
                 ) : (
@@ -566,7 +702,11 @@ export default function CampaignDetail() {
                       <option value="">Select a discount...</option>
                       {unassignedDiscounts.map((d) => (
                         <option key={d.id} value={d.id}>
-                          {d.title || d.code} ({d.valueType === "PERCENTAGE" ? `${d.value}%` : `₹${d.value}`})
+                          {d.title || d.code} (
+                          {d.valueType === "PERCENTAGE"
+                            ? `${d.value}%`
+                            : `₹${d.value}`}
+                          )
                         </option>
                       ))}
                     </select>
@@ -585,11 +725,18 @@ export default function CampaignDetail() {
 
               {/* Option 2: Create new discount */}
               <div className="add-discount-option-box">
-                <label style={{ fontSize: "13.5px", fontWeight: 700, color: "#111827" }}>
+                <label
+                  style={{
+                    fontSize: "13.5px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
                   Option 2: Create a new discount
                 </label>
                 <p style={{ fontSize: "12.5px", color: "#6b7280", margin: 0 }}>
-                  Create a new discount from scratch and attach it directly to this campaign.
+                  Create a new discount from scratch and attach it directly to
+                  this campaign.
                 </p>
                 <Link
                   to={`/app/discounts/new?campaignId=${c.id}`}
@@ -601,7 +748,11 @@ export default function CampaignDetail() {
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <button type="button" className="btn-cancel" onClick={() => setShowAddModal(false)}>
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setShowAddModal(false)}
+                >
                   Close
                 </button>
               </div>

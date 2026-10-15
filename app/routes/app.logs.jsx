@@ -4,8 +4,6 @@ import { useClickOutside } from "../components/useClickOutside";
 import {
   Search,
   SlidersHorizontal,
-  Calendar,
-  ChevronDown,
   X,
   RotateCcw,
 } from "lucide-react";
@@ -13,7 +11,9 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { filtersFromParams, purgeIfDue } from "../services/audit.server";
 import { AppShell } from "../components/ui";
+import { ExportButton } from "../components/ExportButton";
 import "../styles/audit-logs.css";
+import "../styles/bulk.css";
 
 const ACTIONS = [
   "All Actions",
@@ -28,10 +28,8 @@ const ACTIONS = [
 
 const USERS = [
   "All Users",
-  "Hariom Vashista",
-  "Diksha Kumari",
-  "Rohan Singh",
-  "Priya Khanna",
+  "Store Admin",
+  "System Automation",
 ];
 
 const STATUSES = [
@@ -147,13 +145,11 @@ export default function Logs() {
 
   const [params] = useSearchParams();
   const [filterOpen, setFilterOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const filterRef = useRef(null);
-  const dateRef = useRef(null);
 
   useClickOutside(filterRef, () => setFilterOpen(false), filterOpen);
-  useClickOutside(dateRef, () => setDateOpen(false), dateOpen);
 
   // 8 Mock Audit Log rows matching the design mockup for initial render / fallbacks
   const mockLogs = [
@@ -161,9 +157,9 @@ export default function Logs() {
       id: "log-1",
       timestamp: "Oct 6, 2026 4:32 PM",
       relativeTime: "2 minutes ago",
-      userName: "Hariom Vashista",
-      userEmail: "hariom@example.com",
-      userInitials: "HV",
+      userName: "Store Admin",
+      userEmail: "admin@store.com",
+      userInitials: "SA",
       action: "Created Coupon",
       detailsTitle: "Coupon code MRP25",
       detailsSub: "25% off on MRP · 120 products",
@@ -173,9 +169,9 @@ export default function Logs() {
       id: "log-2",
       timestamp: "Oct 6, 2026 4:28 PM",
       relativeTime: "6 minutes ago",
-      userName: "Hariom Vashista",
-      userEmail: "hariom@example.com",
-      userInitials: "HV",
+      userName: "Store Admin",
+      userEmail: "admin@store.com",
+      userInitials: "SA",
       action: "Created Campaign",
       detailsTitle: 'Campaign "Festival Sale"',
       detailsSub: "3 coupons · Oct 1 – Oct 31, 2026",
@@ -185,9 +181,9 @@ export default function Logs() {
       id: "log-3",
       timestamp: "Oct 6, 2026 4:15 PM",
       relativeTime: "19 minutes ago",
-      userName: "Diksha Kumari",
-      userEmail: "diksha@example.com",
-      userInitials: "DK",
+      userName: "Store Admin",
+      userEmail: "admin@store.com",
+      userInitials: "SA",
       action: "Updated Campaign",
       detailsTitle: 'Campaign "Summer Collection"',
       detailsSub: "End date changed to Oct 15, 2026",
@@ -197,9 +193,9 @@ export default function Logs() {
       id: "log-4",
       timestamp: "Oct 6, 2026 3:50 PM",
       relativeTime: "44 minutes ago",
-      userName: "Rohan Singh",
-      userEmail: "rohan@example.com",
-      userInitials: "RS",
+      userName: "System Automation",
+      userEmail: "system@store.com",
+      userInitials: "SY",
       action: "Paused Campaign",
       detailsTitle: 'Campaign "Clearance Sale"',
       detailsSub: "2 coupons paused",
@@ -209,9 +205,9 @@ export default function Logs() {
       id: "log-5",
       timestamp: "Oct 6, 2026 2:12 PM",
       relativeTime: "2 hours ago",
-      userName: "Hariom Vashista",
-      userEmail: "hariom@example.com",
-      userInitials: "HV",
+      userName: "Store Admin",
+      userEmail: "admin@store.com",
+      userInitials: "SA",
       action: "Deleted Coupon",
       detailsTitle: "Coupon code OLD20",
       detailsSub: "Removed from 45 products",
@@ -222,9 +218,9 @@ export default function Logs() {
       id: "log-6",
       timestamp: "Oct 6, 2026 1:05 PM",
       relativeTime: "3 hours ago",
-      userName: "Priya Khanna",
-      userEmail: "priya@example.com",
-      userInitials: "PK",
+      userName: "Store Admin",
+      userEmail: "admin@store.com",
+      userInitials: "SA",
       action: "Created Coupon",
       detailsTitle: "Coupon code NEW15",
       detailsSub: "15% off on MRP · 80 products",
@@ -234,9 +230,9 @@ export default function Logs() {
       id: "log-7",
       timestamp: "Oct 6, 2026 11:40 AM",
       relativeTime: "4 hours ago",
-      userName: "Diksha Kumari",
-      userEmail: "diksha@example.com",
-      userInitials: "DK",
+      userName: "Store Admin",
+      userEmail: "admin@store.com",
+      userInitials: "SA",
       action: "Updated Settings",
       detailsTitle: "Changed default discount type",
       detailsSub: "From: Percentage → Fixed amount",
@@ -246,9 +242,9 @@ export default function Logs() {
       id: "log-8",
       timestamp: "Oct 6, 2026 10:22 AM",
       relativeTime: "5 hours ago",
-      userName: "Rohan Singh",
-      userEmail: "rohan@example.com",
-      userInitials: "RS",
+      userName: "System Automation",
+      userEmail: "system@store.com",
+      userInitials: "SY",
       action: "Scheduled Campaign",
       detailsTitle: 'Campaign "Diwali Sale"',
       detailsSub: "Oct 20 – Nov 5, 2026 · 5 coupons",
@@ -261,7 +257,7 @@ export default function Logs() {
     ? logs.map((l) => {
         const initials = l.actorId
           ? l.actorId.slice(0, 2).toUpperCase()
-          : "HV";
+          : "SA";
         return {
           id: l.id,
           timestamp: new Date(l.timestamp).toLocaleString("en-US", {
@@ -275,8 +271,8 @@ export default function Logs() {
             hour: "numeric",
             minute: "2-digit",
           }),
-          userName: l.actorId || "Hariom Vashista",
-          userEmail: l.actorId ? `${l.actorId.toLowerCase()}@example.com` : "hariom@example.com",
+          userName: l.actorId || "Store Admin",
+          userEmail: l.actorId ? `${l.actorId.toLowerCase()}@store.com` : "admin@store.com",
           userInitials: initials,
           action: l.action || "Updated Settings",
           detailsTitle: l.message || "System Action",
@@ -315,10 +311,11 @@ export default function Logs() {
   }
 
   const displayLogs = rawLogs;
+  const effectiveTotalCount = isDbPopulated ? totalCount : rawLogs.length;
   const totalLogsCount = isDbPopulated ? totalCount : 248;
-  const totalPages = Math.ceil(displayLogs.length / pageSize) || 1;
-  const startItem = displayLogs.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-  const endItem = Math.min(currentPage * pageSize, displayLogs.length);
+  const totalPages = Math.ceil(effectiveTotalCount / pageSize) || 1;
+  const startItem = effectiveTotalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endItem = Math.min(currentPage * pageSize, effectiveTotalCount);
 
   // Count active filter criteria
   let activeFilterCount = 0;
@@ -333,9 +330,35 @@ export default function Logs() {
     return `/app/logs?${p.toString()}`;
   };
 
-  const dateLabel = filters.from && filters.to
-    ? `${filters.from} – ${filters.to}`
-    : "Oct 1, 2026 – Oct 31, 2026";
+  const getPaginationRange = (current, total) => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
+    if (current >= total - 3) return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+    return [1, "...", current - 1, current, current + 1, "...", total];
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === displayLogs.length && displayLogs.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(displayLogs.map((item) => item.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const exportParams = new URLSearchParams(params);
+  if (selectedIds.length > 0) {
+    exportParams.set("ids", selectedIds.join(","));
+  }
+  const exportUrl = `/api/logs/export?${exportParams.toString()}`;
+  const exportFilename = selectedIds.length > 0
+    ? `audit-logs-selected-${selectedIds.length}.csv`
+    : `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
 
   return (
     <AppShell>
@@ -349,62 +372,9 @@ export default function Logs() {
             </p>
           </div>
 
-          {/* Working Date Selector Button using Lucide Icons */}
-          <div style={{ position: "relative" }} ref={dateRef}>
-            <button
-              type="button"
-              className="date-picker-btn"
-              onClick={() => setDateOpen(!dateOpen)}
-            >
-              <Calendar size={15} />
-              <span>{dateLabel}</span>
-              <ChevronDown size={14} />
-            </button>
-
-            {/* Date Range Selector Dropdown */}
-            <Form
-              method="get"
-              className="audit-filter-popover"
-              style={{ width: "300px", display: dateOpen ? "flex" : "none" }}
-            >
-              <h3 className="audit-filter-title">
-                <span>Select Date Range</span>
-                <button
-                  type="button"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}
-                  onClick={() => setDateOpen(false)}
-                >
-                  <X size={16} />
-                </button>
-              </h3>
-              <div className="audit-filter-group">
-                <label htmlFor="from-date">From Date</label>
-                <input
-                  id="from-date"
-                  type="date"
-                  name="from"
-                  defaultValue={filters.from || "2026-10-01"}
-                />
-              </div>
-              <div className="audit-filter-group">
-                <label htmlFor="to-date">To Date</label>
-                <input
-                  id="to-date"
-                  type="date"
-                  name="to"
-                  defaultValue={filters.to || "2026-10-31"}
-                />
-              </div>
-              <div className="audit-filter-actions">
-                <Link to="/app/logs" className="btn-audit-reset" onClick={() => setDateOpen(false)}>
-                  Clear
-                </Link>
-                <button type="submit" className="btn-audit-apply" onClick={() => setDateOpen(false)}>
-                  Apply Date
-                </button>
-              </div>
-            </Form>
-          </div>
+          <ExportButton url={exportUrl} filename={exportFilename}>
+            {selectedIds.length > 0 ? `Export Selected (${selectedIds.length})` : "Export CSV"}
+          </ExportButton>
         </div>
 
         {/* Search Row: Search input on left (Max width 480px), Single Filters Button on right */}
@@ -538,6 +508,13 @@ export default function Logs() {
             <table className="audit-table">
               <thead>
                 <tr>
+                  <th style={{ width: "40px" }} className="checkbox-col">
+                    <input
+                      type="checkbox"
+                      checked={displayLogs.length > 0 && selectedIds.length === displayLogs.length}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th>Timestamp &darr;</th>
                   <th>User</th>
                   <th>Action</th>
@@ -548,13 +525,20 @@ export default function Logs() {
               <tbody>
                 {displayLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", color: "#6b7280", padding: "32px" }}>
+                    <td colSpan={6} style={{ textAlign: "center", color: "#6b7280", padding: "32px" }}>
                       No audit log entries found matching the filter criteria.
                     </td>
                   </tr>
                 ) : (
                   displayLogs.map((log) => (
-                    <tr key={log.id}>
+                    <tr key={log.id} className={selectedIds.includes(log.id) ? "row-selected" : ""}>
+                      <td className="checkbox-col">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(log.id)}
+                          onChange={() => toggleSelect(log.id)}
+                        />
+                      </td>
                       {/* Timestamp */}
                       <td>
                         <div className="time-col">
@@ -610,7 +594,7 @@ export default function Logs() {
           {/* Table Footer Pagination */}
           <div className="table-footer">
             <span className="footer-info">
-              Showing {startItem}&ndash;{endItem} of {displayLogs.length} logs
+              Showing {startItem}&ndash;{endItem} of {effectiveTotalCount} logs
             </span>
 
             <div className="pagination-group">
@@ -624,15 +608,21 @@ export default function Logs() {
                 </button>
               )}
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <Link
-                  key={pageNum}
-                  to={buildPageUrl(pageNum)}
-                  className={`page-btn ${pageNum === currentPage ? "active" : ""}`}
-                >
-                  {pageNum}
-                </Link>
-              ))}
+              {getPaginationRange(currentPage, totalPages).map((item, idx) =>
+                item === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="page-btn disabled">
+                    ...
+                  </span>
+                ) : (
+                  <Link
+                    key={item}
+                    to={buildPageUrl(item)}
+                    className={`page-btn ${item === currentPage ? "active" : ""}`}
+                  >
+                    {item}
+                  </Link>
+                )
+              )}
 
               {currentPage < totalPages ? (
                 <Link to={buildPageUrl(currentPage + 1)} className="page-btn">

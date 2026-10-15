@@ -1,4 +1,4 @@
 {
-  "name": "mrp-discount",
-  "description": "mrp-discount"
+  "name": "Anchr - MRP Discount Generator",
+  "description": "Calculates line-item discounts against the variant MRP (compare-at price)."
 }

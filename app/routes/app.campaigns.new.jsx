@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, Link, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
+import { Form, Link, redirect, useActionData, useLoaderData, useNavigation, useSearchParams } from "react-router";
 import {
   FileText,
   Tag,
@@ -9,16 +9,27 @@ import {
   Calendar,
   Check,
   ArrowRight,
+  ArrowLeft,
   Lightbulb,
   X,
+  FileSpreadsheet,
+  HelpCircle,
+  Info,
 } from "lucide-react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { newContext } from "../services/shopify-client.server";
 import { createCampaign, parseCampaignInput } from "../services/campaigns.server";
 import { AppShell } from "../components/ui";
+import { readCsvUpload } from "../services/csv.server";
+import { importCampaignsCsv } from "../services/campaign-bulk.server";
+import { MAX_IMPORT_ROWS } from "../../shared/bulk-limits.js";
+import { BulkResult, BulkTabs } from "../components/BulkResult";
+import { FileDropzone } from "../components/FileDropzone";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { ExportButton } from "../components/ExportButton";
 import "../styles/campaign-form.css";
+import "../styles/bulk.css";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
@@ -32,6 +43,12 @@ export const loader = async ({ request }) => {
 export const action = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
+  const intent = form.get("intent")?.toString();
+  if (intent === "validate" || intent === "import") {
+    const upload = await readCsvUpload(form.get("file"));
+    if (upload.error) return { result: { mode: "run", created: 0, failed: 0, rows: [], error: upload.error } };
+    return { result: await importCampaignsCsv(newContext(admin, session), upload.text, intent === "validate") };
+  }
   const rawData = Object.fromEntries(form);
 
   const { data, errors } = parseCampaignInput(rawData);
@@ -58,6 +75,8 @@ export default function NewCampaign() {
   const actionData = useActionData();
   const nav = useNavigation();
   const busy = nav.state !== "idle";
+  const [params] = useSearchParams();
+  const tab = params.get("tab") === "import" ? "import" : "normal";
 
   const [description, setDescription] = useState("");
   const today = new Date().toISOString().slice(0, 10);
@@ -88,9 +107,137 @@ export default function NewCampaign() {
     (d) => !attachedDiscounts.some((ad) => ad.id === d.id)
   );
 
+  const isValidating = nav.state === "submitting" && nav.formData?.get("intent") === "validate";
+  const isImporting = nav.state === "submitting" && nav.formData?.get("intent") === "import";
+  const isImportBusy = isValidating || isImporting;
+
+  if (tab === "import") {
+    return (
+      <AppShell>
+        <div className="campaign-form-page">
+          {/* Header */}
+          <div className="campaign-form-header">
+            <div className="campaign-form-title-group">
+              <h1>Import Campaigns from CSV</h1>
+              <p>Upload a CSV file to import multiple campaigns in batch.</p>
+            </div>
+            <Link to="/app/campaigns" className="btn-doc-link">
+              <ArrowLeft size={16} /> Back to Campaigns
+            </Link>
+          </div>
+
+          <BulkTabs base="/app/campaigns/new" tab={tab} labels={{ normal: "Single Campaign", import: "Import CSV" }} />
+          <BulkResult result={actionData?.result} noun="Campaign" />
+
+          <Form method="post" encType="multipart/form-data">
+            <div className="campaign-form-grid">
+              <div className="campaign-form-main">
+                <div className="form-card">
+                  <div className="form-card-header">
+                    <div className="form-card-icon">
+                      <FileSpreadsheet size={18} />
+                    </div>
+                    <div>
+                      <h2 className="form-card-title">Upload CSV File</h2>
+                      <p className="form-card-subtitle">
+                        Up to {MAX_IMPORT_ROWS} rows, 1 MB. Columns: name, description, startsAt, endsAt.
+                      </p>
+                    </div>
+                  </div>
+
+                  <FileDropzone name="file" accept=".csv" maxSizeMB={1} />
+
+                  <div className="form-actions-row" style={{ justifyContent: "flex-start", gap: 12, marginTop: 8 }}>
+                    <button type="submit" name="intent" value="validate" disabled={isImportBusy} className="btn-cancel">
+                      {isValidating ? "Validating..." : "Validate only (Dry run)"}
+                    </button>
+                    <button type="submit" name="intent" value="import" disabled={isImportBusy} className="btn-submit-green">
+                      {isImporting ? "Importing..." : "Import Campaigns"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-card">
+                  <div className="form-card-header">
+                    <div className="form-card-icon">
+                      <HelpCircle size={18} />
+                    </div>
+                    <div>
+                      <h2 className="form-card-title">CSV Column Specifications</h2>
+                      <p className="form-card-subtitle">Supported columns in campaign CSV imports:</p>
+                    </div>
+                  </div>
+
+                  <div className="csv-guide-table-wrapper">
+                    <table className="csv-guide-table">
+                      <thead>
+                        <tr>
+                          <th>Column Name</th>
+                          <th>Required</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>name</code></td>
+                          <td><span className="badge-req">Required</span></td>
+                          <td>Campaign name (e.g. "Diwali Sale 2026")</td>
+                        </tr>
+                        <tr>
+                          <td><code>description</code></td>
+                          <td>Optional</td>
+                          <td>Campaign description text</td>
+                        </tr>
+                        <tr>
+                          <td><code>startsAt</code></td>
+                          <td>Optional</td>
+                          <td>Start date (YYYY-MM-DD format)</td>
+                        </tr>
+                        <tr>
+                          <td><code>endsAt</code></td>
+                          <td>Optional</td>
+                          <td>End date (YYYY-MM-DD format)</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: 13, color: "#6b7280" }}>
+                      Need a sample CSV file? Download the official template:
+                    </span>
+                    <ExportButton url="/api/campaigns/export?template=1" filename="campaigns-template.csv" className="btn-secondary-link">
+                      Download CSV Template
+                    </ExportButton>
+                  </div>
+                </div>
+              </div>
+
+              <div className="campaign-sidebar">
+                <div className="form-card">
+                  <h3 className="form-card-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Info size={18} color="#059669" />
+                    Campaign Import Notes
+                  </h3>
+                  <p className="form-hint" style={{ fontSize: 13, lineHeight: 1.5, color: "#374151" }}>
+                    • Campaigns created via CSV import start in <strong>DRAFT</strong> status.
+                  </p>
+                  <p className="form-hint" style={{ fontSize: 13, lineHeight: 1.5, color: "#374151" }}>
+                    • To attach coupons, reference the campaign name in your discounts CSV import.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Form>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <div className="campaign-form-page">
+        <BulkTabs base="/app/campaigns/new" tab={tab} labels={{ normal: "Single Campaign", import: "Import CSV" }} />
         {/* Top Header */}
         <div className="campaign-form-header">
           <div className="campaign-form-title-group">

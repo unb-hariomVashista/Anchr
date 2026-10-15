@@ -16,6 +16,7 @@ import {
   Pause,
   Play,
   Trash2,
+  Download,
 } from "lucide-react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -23,7 +24,9 @@ import { newContext, ShopifyUserError } from "../services/shopify-client.server"
 import { deleteDiscount, setDiscountPaused, pushDiscount } from "../services/discounts.server";
 import { AppShell } from "../components/ui";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { ExportButton } from "../components/ExportButton";
 import "../styles/discounts-page.css";
+import "../styles/bulk.css";
 
 const STATUS_OPTIONS = ["All Statuses", "Active", "Paused", "Expired", "Draft"];
 const AMOUNT_OPTIONS = ["All Amounts", "Under 20%", "20% - 40%", "Over 40%", "Under ₹500", "₹500+"];
@@ -224,6 +227,7 @@ export default function Discounts() {
 
   const [params] = useSearchParams();
   const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
   const filterRef = useRef(null);
 
   useClickOutside(filterRef, () => setFilterOpen(false), filterOpen);
@@ -395,15 +399,16 @@ export default function Discounts() {
   }
 
   const displayItems = rawItems;
+  const effectiveTotalCount = isDbPopulated ? totalCount : rawItems.length;
   const totalCouponsCount = isDbPopulated ? totalCount : 48;
   const activeCountDisplay = isDbPopulated ? activeCount : 34;
   const pausedCountDisplay = isDbPopulated ? pausedCount : 8;
   const expiredCountDisplay = isDbPopulated ? expiredCount : 6;
 
-  // Real Pagination Calculations
-  const totalPages = Math.ceil(displayItems.length / pageSize) || 1;
-  const startItem = displayItems.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-  const endItem = Math.min(currentPage * pageSize, displayItems.length);
+  // Real Pagination Calculations based on total count
+  const totalPages = Math.ceil(effectiveTotalCount / pageSize) || 1;
+  const startItem = effectiveTotalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endItem = Math.min(currentPage * pageSize, effectiveTotalCount);
 
   // Count active filter criteria
   let activeFilterCount = 0;
@@ -418,6 +423,36 @@ export default function Discounts() {
     return `/app/discounts?${p.toString()}`;
   };
 
+  const getPaginationRange = (current, total) => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
+    if (current >= total - 3) return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+    return [1, "...", current - 1, current, current + 1, "...", total];
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === displayItems.length && displayItems.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(displayItems.map((item) => item.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const exportParams = new URLSearchParams(params);
+  if (selectedIds.length > 0) {
+    exportParams.set("ids", selectedIds.join(","));
+  }
+  const exportUrl = `/api/discounts/export?${exportParams.toString()}`;
+  const exportFilename = selectedIds.length > 0
+    ? `discounts-selected-${selectedIds.length}.csv`
+    : `discounts-${new Date().toISOString().slice(0, 10)}.csv`;
+
   return (
     <AppShell>
       <div className="discounts-page">
@@ -429,9 +464,14 @@ export default function Discounts() {
               Manage all your MRP-based discount coupons. Create, edit, pause or delete coupons.
             </p>
           </div>
-          <Link to="/app/discounts/new" className="btn-create-coupon">
-            <Plus size={16} /> Create Coupon
-          </Link>
+          <div className="header-actions">
+            <ExportButton url={exportUrl} filename={exportFilename}>
+              {selectedIds.length > 0 ? `Export Selected (${selectedIds.length})` : "Export CSV"}
+            </ExportButton>
+            <Link to="/app/discounts/new" className="btn-create-coupon">
+              <Plus size={16} /> Create Coupon
+            </Link>
+          </div>
         </div>
 
         {/* 4 Metric Cards */}
@@ -626,13 +666,16 @@ export default function Discounts() {
               <thead>
                 <tr>
                   <th className="checkbox-col">
-                    <input type="checkbox" />
+                    <input
+                      type="checkbox"
+                      checked={displayItems.length > 0 && selectedIds.length === displayItems.length}
+                      onChange={toggleSelectAll}
+                    />
                   </th>
                   <th>Coupon Code &darr;</th>
                   <th>Discount</th>
                   <th>Type</th>
                   <th>Applies To</th>
-                  <th>Usage</th>
                   <th>Validity</th>
                   <th>Status</th>
                   <th style={{ textAlign: "right", paddingRight: "20px" }}>Actions</th>
@@ -641,18 +684,21 @@ export default function Discounts() {
               <tbody>
                 {displayItems.length === 0 ? (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: "center", color: "#6b7280", padding: "32px" }}>
+                    <td colSpan={8} style={{ textAlign: "center", color: "#6b7280", padding: "32px" }}>
                       No discounts found matching the filter criteria.
                     </td>
                   </tr>
                 ) : (
                   displayItems.map((item) => {
-                    const usagePercent = Math.min(100, Math.round((item.used / item.limit) * 100));
                     return (
-                      <tr key={item.id}>
+                      <tr key={item.id} className={selectedIds.includes(item.id) ? "row-selected" : ""}>
                         {/* Checkbox */}
                         <td className="checkbox-col">
-                          <input type="checkbox" />
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(item.id)}
+                            onChange={() => toggleSelect(item.id)}
+                          />
                         </td>
 
                         {/* Coupon Code */}
@@ -695,26 +741,6 @@ export default function Discounts() {
                           </div>
                         </td>
 
-                        {/* Usage Progress */}
-                        <td>
-                          <div className="usage-progress-col">
-                            <div className="usage-progress-info">
-                              <div className="usage-text-row">
-                                <span className="usage-num">
-                                  {item.used} / {item.limit}
-                                </span>
-                                <span className="usage-percent">{usagePercent}%</span>
-                              </div>
-                              <div className="usage-bar-bg">
-                                <div
-                                  className={`usage-bar-fill ${usagePercent >= 100 ? "full" : ""}`}
-                                  style={{ width: `${usagePercent}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
                         {/* Validity */}
                         <td>
                           <span className="validity-text">{item.validity}</span>
@@ -744,7 +770,7 @@ export default function Discounts() {
           {/* Real Dynamic Pagination Footer */}
           <div className="discounts-footer">
             <span className="footer-info-text">
-              Showing {startItem}&ndash;{endItem} of {displayItems.length} coupons
+              Showing {startItem}&ndash;{endItem} of {effectiveTotalCount} coupons
             </span>
 
             <div className="pagination-controls">
@@ -758,15 +784,21 @@ export default function Discounts() {
                 </button>
               )}
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <Link
-                  key={pageNum}
-                  to={buildPageUrl(pageNum)}
-                  className={`page-num-btn ${pageNum === currentPage ? "active" : ""}`}
-                >
-                  {pageNum}
-                </Link>
-              ))}
+              {getPaginationRange(currentPage, totalPages).map((item, idx) =>
+                item === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="page-num-btn disabled">
+                    ...
+                  </span>
+                ) : (
+                  <Link
+                    key={item}
+                    to={buildPageUrl(item)}
+                    className={`page-num-btn ${item === currentPage ? "active" : ""}`}
+                  >
+                    {item}
+                  </Link>
+                )
+              )}
 
               {currentPage < totalPages ? (
                 <Link to={buildPageUrl(currentPage + 1)} className="page-num-btn">

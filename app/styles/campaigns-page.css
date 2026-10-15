@@ -357,13 +357,15 @@
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .campaigns-table-wrapper {
-  overflow-x: auto;
+  overflow: visible;
   width: 100%;
 }
 
@@ -384,6 +386,14 @@
   color: #6b7280;
   border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
+}
+
+.campaigns-table th:first-child {
+  border-top-left-radius: 15px;
+}
+
+.campaigns-table th:last-child {
+  border-top-right-radius: 15px;
 }
 
 .campaigns-table td {
@@ -531,8 +541,8 @@
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  z-index: 9999;
   min-width: 140px;
   padding: 6px;
   display: flex;

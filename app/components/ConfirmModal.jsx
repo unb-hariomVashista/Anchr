@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Trash2, HelpCircle } from "lucide-react";
 import "../styles/confirm-modal.css";
 
 /**
- * Clean in-app Confirmation Modal without icons.
+ * Modern in-app Confirmation Modal with icon badge and clean left-aligned typography.
  */
 export function ConfirmModal({
   isOpen,
@@ -30,6 +30,8 @@ export function ConfirmModal({
 
   if (!isOpen) return null;
 
+  const IconComponent = confirmVariant === "critical" ? Trash2 : HelpCircle;
+
   return (
     <div className="confirm-modal-overlay" onClick={onClose}>
       <div
@@ -47,11 +49,15 @@ export function ConfirmModal({
           <X size={16} />
         </button>
 
-        <div className="confirm-modal-header">
-          <h3 className="confirm-modal-title">{title}</h3>
+        <div className="confirm-modal-body">
+          <div className={`confirm-modal-icon-wrapper ${confirmVariant}`}>
+            <IconComponent size={22} />
+          </div>
+          <div className="confirm-modal-content">
+            <h3 className="confirm-modal-title">{title}</h3>
+            <p className="confirm-modal-message">{message}</p>
+          </div>
         </div>
-
-        <p className="confirm-modal-message">{message}</p>
 
         <div className="confirm-modal-actions">
           <button
